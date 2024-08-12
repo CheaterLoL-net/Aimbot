@@ -1,0 +1,306 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+-- Create the GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AdvancedGUI"
+ScreenGui.Parent = LocalPlayer.PlayerGui
+
+-- Main Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 500, 0, 600)
+MainFrame.Position = UDim2.new(0.5, -250, 0.5, -300)
+MainFrame.BackgroundTransparency = 0.5 -- Make background transparent
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+MainFrame.Visible = false
+
+-- Add UIStroke for Rainbow Outline
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Thickness = 5
+UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+UIStroke.Parent = MainFrame
+
+-- Function to update Rainbow color
+local function updateRainbowOutline()
+    local time = tick() * 5
+    UIStroke.Color = Color3.fromHSV(math.sin(time) * 0.5 + 0.5, 1, 1)
+end
+
+-- Title Label
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(1, 0, 0, 50)
+TitleLabel.Position = UDim2.new(0, 0, 0, 0)
+TitleLabel.Text = "Advanced GUI"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+TitleLabel.TextScaled = true
+TitleLabel.TextStrokeTransparency = 0.5
+TitleLabel.Parent = MainFrame
+
+-- Toggle Tracers Button
+local ToggleTracersButton = Instance.new("TextButton")
+ToggleTracersButton.Size = UDim2.new(0, 450, 0, 60)
+ToggleTracersButton.Position = UDim2.new(0.5, -225, 0.15, 10)
+ToggleTracersButton.Text = "Toggle Tracers"
+ToggleTracersButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ToggleTracersButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleTracersButton.BorderSizePixel = 0
+ToggleTracersButton.TextScaled = true
+ToggleTracersButton.TextStrokeTransparency = 0.5
+ToggleTracersButton.Parent = MainFrame
+
+-- Toggle ESP Button
+local ToggleESPButton = Instance.new("TextButton")
+ToggleESPButton.Size = UDim2.new(0, 450, 0, 60)
+ToggleESPButton.Position = UDim2.new(0.5, -225, 0.25, 10)
+ToggleESPButton.Text = "Toggle ESP"
+ToggleESPButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ToggleESPButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleESPButton.BorderSizePixel = 0
+ToggleESPButton.TextScaled = true
+ToggleESPButton.TextStrokeTransparency = 0.5
+ToggleESPButton.Parent = MainFrame
+
+-- Toggle Aim Lock Button
+local ToggleAimLockButton = Instance.new("TextButton")
+ToggleAimLockButton.Size = UDim2.new(0, 450, 0, 60)
+ToggleAimLockButton.Position = UDim2.new(0.5, -225, 0.35, 10)
+ToggleAimLockButton.Text = "Toggle Aim Lock"
+ToggleAimLockButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ToggleAimLockButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleAimLockButton.BorderSizePixel = 0
+ToggleAimLockButton.TextScaled = true
+ToggleAimLockButton.TextStrokeTransparency = 0.5
+ToggleAimLockButton.Parent = MainFrame
+
+-- Close Button
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 50, 0, 50)
+CloseButton.Position = UDim2.new(1, -60, 0, 5)
+CloseButton.Text = "X"
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.BorderSizePixel = 0
+CloseButton.TextScaled = true
+CloseButton.TextStrokeTransparency = 0.5
+CloseButton.Parent = MainFrame
+
+-- Draggable Functionality
+local dragging, dragStart, startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+local function onInputBegan(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end
+
+local function onInputChanged(input)
+    if dragging then
+        update(input)
+    end
+end
+
+MainFrame.InputBegan:Connect(onInputBegan)
+UserInputService.InputChanged:Connect(onInputChanged)
+
+-- Create a tracer
+local function createTracer()
+    local Tracer = Drawing.new("Line")
+    Tracer.Visible = false
+    Tracer.Color = Color3.new(1, 1, 1)
+    Tracer.Thickness = 2
+    Tracer.Transparency = 0.5
+    return Tracer
+end
+
+-- Create an ESP box
+local function createESP()
+    local ESP = Drawing.new("Square")
+    ESP.Visible = false
+    ESP.Thickness = 2
+    ESP.Transparency = 0.5
+    return ESP
+end
+
+local tracers = {}
+local espBoxes = {}
+
+-- Initialize tracers and ESP for existing players
+for _, player in pairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        local tracer = createTracer()
+        local esp = createESP()
+        table.insert(tracers, {Player = player, Tracer = tracer})
+        table.insert(espBoxes, {Player = player, ESP = esp})
+    end
+end
+
+-- Handle new players
+Players.PlayerAdded:Connect(function(player)
+    if player ~= LocalPlayer then
+        local tracer = createTracer()
+        local esp = createESP()
+        table.insert(tracers, {Player = player, Tracer = tracer})
+        table.insert(espBoxes, {Player = player, ESP = esp})
+    end
+end)
+
+-- Toggle tracers
+local tracersVisible = false
+local function toggleTracers()
+    tracersVisible = not tracersVisible
+    for _, tracerData in pairs(tracers) do
+        tracerData.Tracer.Visible = tracersVisible
+    end
+end
+
+ToggleTracersButton.MouseButton1Click:Connect(toggleTracers)
+
+-- Toggle ESP
+local espVisible = false
+local function toggleESP()
+    espVisible = not espVisible
+    for _, espData in pairs(espBoxes) do
+        local player = espData.Player
+        local esp = espData.ESP
+        if player.Team == LocalPlayer.Team then
+            esp.Color = Color3.fromRGB(0, 255, 0) -- Green for teammates
+        else
+            esp.Color = Color3.fromRGB(255, 0, 0) -- Red for enemies
+        end
+        esp.Visible = espVisible
+    end
+end
+
+ToggleESPButton.MouseButton1Click:Connect(toggleESP)
+
+-- Aim Lock
+local aimLockEnabled = false
+
+local function toggleAimLock()
+    aimLockEnabled = not aimLockEnabled
+end
+
+ToggleAimLockButton.MouseButton1Click:Connect(toggleAimLock)
+
+-- Utility function to check visibility through walls
+local function isVisibleThroughWalls(head)
+    local ray = Ray.new(Camera.CFrame.p, (head.Position - Camera.CFrame.p).unit * 300) -- Adjust the distance as needed
+    local part, position = workspace:FindPartOnRay(ray, LocalPlayer.Character, false, true)
+    if part then
+        return part:IsDescendantOf(head.Parent)
+    end
+    return true
+end
+
+-- Aim at the closest visible enemy's head
+local function aimAtClosestVisibleEnemy()
+    local closestPlayer
+    local shortestDistance = math.huge
+
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team then
+            local char = plr.Character
+            if char then
+                local head = char:FindFirstChild("Head")
+                if head and isVisibleThroughWalls(head) then
+                    local distance = (Camera.CFrame.p - head.Position).Magnitude
+                    if distance < shortestDistance then
+                        shortestDistance = distance
+                        closestPlayer = plr
+                    end
+                end
+            end
+        end
+    end
+
+    if closestPlayer then
+        local char = closestPlayer.Character
+        if char then
+            local head = char:FindFirstChild("Head")
+            if head then
+                Camera.CFrame = CFrame.new(Camera.CFrame.p, head.Position)
+            end
+        end
+    end
+end
+
+-- Keybinds
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed then
+        if input.KeyCode == Enum.KeyCode.Z then
+            MainFrame.Visible = not MainFrame.Visible
+        elseif input.KeyCode == Enum.KeyCode.T then
+            toggleTracers()
+        elseif input.KeyCode == Enum.KeyCode.Y then
+            toggleESP()
+        elseif input.KeyCode == Enum.KeyCode.U then
+            toggleAimLock()
+        end
+    end
+end)
+
+-- Update tracers, ESP, aim lock, and rainbow outline continuously
+RunService.RenderStepped:Connect(function()
+    updateRainbowOutline() -- Update the rainbow effect
+
+    for _, tracerData in pairs(tracers) do
+        local player = tracerData.Player
+        local tracer = tracerData.Tracer
+
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player ~= LocalPlayer then
+            local humanoidRootPart = player.Character.HumanoidRootPart
+            local screenPosition, onScreen = Camera:WorldToViewportPoint(humanoidRootPart.Position)
+
+            if onScreen and tracersVisible then
+                tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+                tracer.To = Vector2.new(screenPosition.X, screenPosition.Y)
+                tracer.Visible = true
+            else
+                tracer.Visible = false
+            end
+        else
+            tracer.Visible = false
+        end
+    end
+
+    for _, espData in pairs(espBoxes) do
+        local player = espData.Player
+        local esp = espData.ESP
+
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player ~= LocalPlayer then
+            local humanoidRootPart = player.Character.HumanoidRootPart
+            local screenPosition, onScreen = Camera:WorldToViewportPoint(humanoidRootPart.Position)
+
+            if onScreen and espVisible then
+                esp.Size = Vector2.new(120, 120) -- Adjust the size as needed
+                esp.Position = Vector2.new(screenPosition.X - esp.Size.X / 2, screenPosition.Y - esp.Size.Y / 2)
+                esp.Visible = true
+            else
+                esp.Visible = false
+            end
+        else
+            esp.Visible = false
+        end
+    end
+
+    if aimLockEnabled then
+        aimAtClosestVisibleEnemy()
+    end
+end)
